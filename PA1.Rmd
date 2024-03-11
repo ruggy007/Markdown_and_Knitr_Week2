@@ -10,6 +10,10 @@ output:
 
 knitr::opts_chunk$set(echo=TRUE)
 
+library(chron)
+packageVersion("chron") 
+library(ggplot2)
+
 activityData <- read.csv(file="activity.csv")
 
 activityData$date <-as.Date(activityData$date, format="%Y-%m-%d")
@@ -34,6 +38,9 @@ plot(timeseries_steps$interval,timeseries_steps$steps, type="l", xlab="5-minute 
 
 timeseries_steps$interval[which.max(timeseries_steps$steps)]
 
+
+## Imputing missing values
+
 sum(is.na(activityData$steps) == TRUE)
 
 activityData$fixed_steps <- ifelse(is.na(activityData$steps), round(timeseries_steps$steps[match(activityData$interval, timeseries_steps$interval)], 0), activityData$steps)
@@ -50,11 +57,10 @@ fixed_mean_per_day<-mean(fixed_AggregatedData$fixed_steps, na.rm=TRUE)
 fixed_median_per_day<-median(fixed_AggregatedData$fixed_steps, na.rm=TRUE)
 
 
-
-
-
-## Imputing missing values
-
-
-
 ## Are there differences in activity patterns between weekdays and weekends?
+
+new_dataset$daytype <- ifelse(is.weekend(new_dataset$date),"weekend", "weekday")
+daytype_interval<-aggregate(steps ~ interval + daytype, new_dataset, mean, na.rm=TRUE)
+
+ggplot(daytype_interval, aes(interval, steps)) + 
+  geom_line() + xlab("Interval") + ylab("Mean of steps") + facet_grid(daytype ~ .)
