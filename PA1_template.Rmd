@@ -8,13 +8,48 @@ output:
 
 ## Loading and preprocessing the data
 
+knitr::opts_chunk$set(echo=TRUE)
 
+activityData <- read.csv(file="activity.csv")
+
+activityData$date <-as.Date(activityData$date, format="%Y-%m-%d")
 
 ## What is mean total number of steps taken per day?
 
+AggregatedData<-aggregate(activityData$steps, list(activityData$date), sum, na.rm=TRUE)
+colnames(AggregatedData) <- c("date", "steps")
+
+hist(AggregatedData$steps,breaks=10, main="Histogram of total steps per day", xlab="Total steps per day", ylab="Frequency")
+
+mean_per_day<-mean(AggregatedData$steps, na.rm=TRUE)
+
+median_per_day<-median(AggregatedData$steps, na.rm=TRUE)
 
 
 ## What is the average daily activity pattern?
+
+timeseries_steps<-aggregate(activityData$steps, list(activityData$interval), mean, na.rm=TRUE)
+colnames(timeseries_steps) <- c("interval", "steps")
+plot(timeseries_steps$interval,timeseries_steps$steps, type="l", xlab="5-minute Interval", ylab="Mean of steps")
+
+timeseries_steps$interval[which.max(timeseries_steps$steps)]
+
+sum(is.na(activityData$steps) == TRUE)
+
+activityData$fixed_steps <- ifelse(is.na(activityData$steps), round(timeseries_steps$steps[match(activityData$interval, timeseries_steps$interval)], 0), activityData$steps)
+head(activityData, n=20)
+
+new_dataset<-data.frame(steps=activityData$fixed_steps, date=activityData$date, interval=activityData$interval)
+
+fixed_AggregatedData<-aggregate(new_dataset$steps, list(new_dataset$date), sum, na.rm=TRUE)
+colnames(fixed_AggregatedData) <- c("date", "fixed_steps")
+hist(fixed_AggregatedData$fixed_steps,breaks=10, main="Histogram of the total steps", xlab="steps (correced the missing steps)", ylab="Frequency")
+
+fixed_mean_per_day<-mean(fixed_AggregatedData$fixed_steps, na.rm=TRUE)
+
+fixed_median_per_day<-median(fixed_AggregatedData$fixed_steps, na.rm=TRUE)
+
+
 
 
 
